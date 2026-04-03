@@ -88,6 +88,36 @@ const BASE_TASK_LIBRARY = [
     description: "Fallback movement option for poor weather.",
   },
   {
+    id: "home_workout_10",
+    title: "10-min home workout",
+    category: "Activity",
+    points: 2,
+    people: ["Michael", "Sarah"],
+    dayTypes: ["both_wfh"],
+    weather: ["good", "mixed", "bad"],
+    description: "Quick bodyweight session when both at home.",
+  },
+  {
+    id: "home_workout_20",
+    title: "20-min home workout",
+    category: "Activity",
+    points: 3,
+    people: ["Michael", "Sarah"],
+    dayTypes: ["both_wfh"],
+    weather: ["good", "mixed", "bad"],
+    description: "Stronger session with both home to focus.",
+  },
+  {
+    id: "stairs_or_burpees",
+    title: "Stairs or bodyweight circuit",
+    category: "Activity",
+    points: 2,
+    people: ["Michael", "Sarah"],
+    dayTypes: ["both_wfh"],
+    weather: ["good", "mixed", "bad"],
+    description: "High-intensity option when at home.",
+  },
+  {
     id: "calorie_deficit",
     title: "Stay in calorie deficit",
     category: "Food",
@@ -209,7 +239,7 @@ const BASE_TASK_LIBRARY = [
   },
 ];
 
-const MONTHLY_WELLBEING_TASKS = [
+const DEFAULT_MONTHLY_WELLBEING = [
   { id: "date_night", title: "Date night", points: 3, description: "Protected couple time without phones taking over." },
   { id: "child_free_time", title: "Child-free time", points: 3, description: "A proper break together or individually to recharge." },
   { id: "social_time", title: "Social time", points: 2, description: "Meet friends or family and stay connected." },
@@ -228,6 +258,16 @@ const defaultWeek = {
 const defaultWeights = {
   Michael: { starting: "", current: "" },
   Sarah: { starting: "", current: "" },
+};
+
+const defaultDaySettings = {
+  Mon: { dayType: "both_wfh", weather: "good" },
+  Tue: { dayType: "both_wfh", weather: "good" },
+  Wed: { dayType: "both_wfh", weather: "good" },
+  Thu: { dayType: "both_wfh", weather: "good" },
+  Fri: { dayType: "both_wfh", weather: "good" },
+  Sat: { dayType: "weekend", weather: "good" },
+  Sun: { dayType: "weekend", weather: "good" },
 };
 
 const personColors = {
@@ -271,10 +311,19 @@ function ProgressBar({ value }) {
 }
 
 export default function App() {
-  const [dayType, setDayType] = useState("both_wfh");
-  const [weather, setWeather] = useState("good");
   const [selectedDay, setSelectedDay] = useState(getTodayKey());
   const [activeTab, setActiveTab] = useState("today");
+  
+  const [daySettings, setDaySettings] = useState(() => {
+    const saved = localStorage.getItem("weight-loss-day-settings-v2");
+    return saved ? JSON.parse(saved) : defaultDaySettings;
+  });
+
+  const [savedDays, setSavedDays] = useState(() => {
+    const saved = localStorage.getItem("weight-loss-saved-days-v1");
+    return saved ? JSON.parse(saved) : {};
+  });
+
   const [weekScores, setWeekScores] = useState(() => {
     const saved = localStorage.getItem("weight-loss-week-scores-v1");
     return saved ? JSON.parse(saved) : defaultWeek;
@@ -291,10 +340,19 @@ export default function App() {
     const saved = localStorage.getItem("weight-loss-custom-tasks-v1");
     return saved ? JSON.parse(saved) : [];
   });
+  const [dailySteps, setDailySteps] = useState(() => {
+    const saved = localStorage.getItem("weight-loss-daily-steps-v1");
+    return saved ? JSON.parse(saved) : { Michael: {}, Sarah: {} };
+  });
+  const [monthlyWellbeing, setMonthlyWellbeing] = useState(() => {
+    const saved = localStorage.getItem("weight-loss-monthly-wellbeing-tasks-v1");
+    return saved ? JSON.parse(saved) : DEFAULT_MONTHLY_WELLBEING;
+  });
   const [monthlyCompleted, setMonthlyCompleted] = useState(() => {
-    const saved = localStorage.getItem("weight-loss-monthly-wellbeing-v1");
+    const saved = localStorage.getItem("weight-loss-monthly-completed-v1");
     return saved ? JSON.parse(saved) : {};
   });
+
   const [newTask, setNewTask] = useState({
     title: "",
     category: "Habit",
@@ -304,6 +362,20 @@ export default function App() {
     weather: "all",
     description: "",
   });
+
+  const [newWellbeingTask, setNewWellbeingTask] = useState({
+    title: "",
+    points: 2,
+    description: "",
+  });
+
+  useEffect(() => {
+    localStorage.setItem("weight-loss-day-settings-v2", JSON.stringify(daySettings));
+  }, [daySettings]);
+
+  useEffect(() => {
+    localStorage.setItem("weight-loss-saved-days-v1", JSON.stringify(savedDays));
+  }, [savedDays]);
 
   useEffect(() => {
     localStorage.setItem("weight-loss-week-scores-v1", JSON.stringify(weekScores));
@@ -322,12 +394,63 @@ export default function App() {
   }, [customTasks]);
 
   useEffect(() => {
-    localStorage.setItem("weight-loss-monthly-wellbeing-v1", JSON.stringify(monthlyCompleted));
+    localStorage.setItem("weight-loss-daily-steps-v1", JSON.stringify(dailySteps));
+  }, [dailySteps]);
+
+  useEffect(() => {
+    localStorage.setItem("weight-loss-monthly-wellbeing-tasks-v1", JSON.stringify(monthlyWellbeing));
+  }, [monthlyWellbeing]);
+
+  useEffect(() => {
+    localStorage.setItem("weight-loss-monthly-completed-v1", JSON.stringify(monthlyCompleted));
   }, [monthlyCompleted]);
 
+  const currentDayType = daySettings[selectedDay]?.dayType || "both_wfh";
+  const currentWeather = daySettings[selectedDay]?.weather || "good";
+  const isDaySaved = !!savedDays[selectedDay];
+
+  const handleDayTypeChange = (e) => {
+    if (isDaySaved) {
+      if (window.confirm(`${selectedDay} is saved. Edit anyway?`)) {
+        setDaySettings((prev) => ({
+          ...prev,
+          [selectedDay]: { ...prev[selectedDay], dayType: e.target.value },
+        }));
+      }
+    } else {
+      setDaySettings((prev) => ({
+        ...prev,
+        [selectedDay]: { ...prev[selectedDay], dayType: e.target.value },
+      }));
+    }
+  };
+
+  const handleWeatherChange = (e) => {
+    if (isDaySaved) {
+      if (window.confirm(`${selectedDay} is saved. Edit anyway?`)) {
+        setDaySettings((prev) => ({
+          ...prev,
+          [selectedDay]: { ...prev[selectedDay], weather: e.target.value },
+        }));
+      }
+    } else {
+      setDaySettings((prev) => ({
+        ...prev,
+        [selectedDay]: { ...prev[selectedDay], weather: e.target.value },
+      }));
+    }
+  };
+
+  const saveDay = () => {
+    setSavedDays((prev) => ({
+      ...prev,
+      [selectedDay]: true,
+    }));
+  };
+
   const taskLibrary = useMemo(() => [...BASE_TASK_LIBRARY, ...customTasks], [customTasks]);
-  const michaelTasks = useMemo(() => getSuggestedTasks(taskLibrary, dayType, weather, "Michael"), [taskLibrary, dayType, weather]);
-  const sarahTasks = useMemo(() => getSuggestedTasks(taskLibrary, dayType, weather, "Sarah"), [taskLibrary, dayType, weather]);
+  const michaelTasks = useMemo(() => getSuggestedTasks(taskLibrary, currentDayType, currentWeather, "Michael"), [taskLibrary, currentDayType, currentWeather]);
+  const sarahTasks = useMemo(() => getSuggestedTasks(taskLibrary, currentDayType, currentWeather, "Sarah"), [taskLibrary, currentDayType, currentWeather]);
 
   const dailyScore = (person) => weekScores[person][selectedDay] || 0;
   const weeklyScore = (person) => Object.values(weekScores[person]).reduce((sum, value) => sum + value, 0);
@@ -354,6 +477,12 @@ export default function App() {
   };
 
   const resetSelectedDay = () => {
+    if (isDaySaved) {
+      if (!window.confirm(`${selectedDay} is saved. Reset anyway?`)) {
+        return;
+      }
+    }
+
     const freshCompleted = { ...completed };
     ["Michael", "Sarah"].forEach((person) => {
       Object.keys(freshCompleted[person] || {}).forEach((key) => {
@@ -389,6 +518,20 @@ export default function App() {
         [field]: value,
       },
     }));
+  };
+
+  const updateSteps = (person, value) => {
+    setDailySteps((prev) => ({
+      ...prev,
+      [person]: {
+        ...prev[person],
+        [selectedDay]: value,
+      },
+    }));
+  };
+
+  const getSteps = (person) => {
+    return dailySteps[person]?.[selectedDay] || "";
   };
 
   const addCustomTask = () => {
@@ -427,6 +570,28 @@ export default function App() {
     setCustomTasks((prev) => prev.filter((task) => task.id !== taskId));
   };
 
+  const addWellbeingTask = () => {
+    if (!newWellbeingTask.title.trim()) return;
+
+    const task = {
+      id: `wellbeing_${Date.now()}`,
+      title: newWellbeingTask.title.trim(),
+      points: Number(newWellbeingTask.points),
+      description: newWellbeingTask.description.trim() || "Wellbeing activity",
+    };
+
+    setMonthlyWellbeing((prev) => [...prev, task]);
+    setNewWellbeingTask({
+      title: "",
+      points: 2,
+      description: "",
+    });
+  };
+
+  const removeWellbeingTask = (taskId) => {
+    setMonthlyWellbeing((prev) => prev.filter((task) => task.id !== taskId));
+  };
+
   const toggleMonthlyTask = (taskId) => {
     setMonthlyCompleted((prev) => ({
       ...prev,
@@ -434,7 +599,7 @@ export default function App() {
     }));
   };
 
-  const monthlyWellbeingPoints = MONTHLY_WELLBEING_TASKS.reduce((sum, task) => {
+  const monthlyWellbeingPoints = monthlyWellbeing.reduce((sum, task) => {
     return monthlyCompleted[task.id] ? sum + task.points : sum;
   }, 0);
 
@@ -457,7 +622,7 @@ export default function App() {
   const michaelWeekly = weeklyScore("Michael") + getWeightPoints("Michael");
   const sarahWeekly = weeklyScore("Sarah") + getWeightPoints("Sarah");
   const winnerText = michaelWeekly === sarahWeekly
-    ? "It’s a tie this week"
+    ? "It's a tie this week"
     : michaelWeekly > sarahWeekly
       ? "Michael is winning this week"
       : "Sarah is winning this week";
@@ -481,7 +646,7 @@ export default function App() {
           <div className="panel-body stacked-gap">
             <div className="field-group">
               <label htmlFor="dayType">Day type</label>
-              <select id="dayType" value={dayType} onChange={(e) => setDayType(e.target.value)}>
+              <select id="dayType" value={currentDayType} onChange={handleDayTypeChange}>
                 {DAY_TYPES.map((option) => (
                   <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
@@ -490,7 +655,7 @@ export default function App() {
 
             <div className="field-group">
               <label htmlFor="weather">Weather</label>
-              <select id="weather" value={weather} onChange={(e) => setWeather(e.target.value)}>
+              <select id="weather" value={currentWeather} onChange={handleWeatherChange}>
                 {WEATHER_TYPES.map((option) => (
                   <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
@@ -506,20 +671,58 @@ export default function App() {
                     className={selectedDay === day ? "day-btn active" : "day-btn"}
                     onClick={() => setSelectedDay(day)}
                     type="button"
+                    title={savedDays[day] ? "✓ Saved" : ""}
                   >
-                    {day}
+                    {day} {savedDays[day] ? "✓" : ""}
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="info-box">
-              Suggested tasks adapt to <strong>day type</strong> and <strong>weather</strong>. Tap tasks to mark them done and scores update automatically.
+              Suggested tasks adapt to <strong>day type</strong> and <strong>weather</strong>. Each day saves its own settings. Tap tasks to mark them done and scores update automatically.
             </div>
 
-            <button className="secondary-btn full-width" onClick={resetSelectedDay} type="button">
-              Reset selected day
-            </button>
+            {isDaySaved && (
+              <div className="muted-box" style={{ borderLeft: "4px solid #059669" }}>
+                <strong>✓ This day is saved</strong>
+                <div className="task-description">You'll be prompted before editing.</div>
+              </div>
+            )}
+
+            <div className="two-col-grid">
+              <button className="secondary-btn full-width" onClick={resetSelectedDay} type="button">
+                Reset day
+              </button>
+              <button
+                className="primary-btn full-width"
+                onClick={saveDay}
+                type="button"
+                disabled={isDaySaved}
+                style={{ opacity: isDaySaved ? 0.5 : 1, cursor: isDaySaved ? "not-allowed" : "pointer" }}
+              >
+                {isDaySaved ? "✓ Saved" : "Save day"}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header simple-header">
+            <h2>Daily steps</h2>
+          </div>
+          <div className="panel-body stacked-gap">
+            {["Michael", "Sarah"].map((person) => (
+              <div key={person} className="field-group">
+                <label>{person}'s steps today</label>
+                <input
+                  type="number"
+                  value={getSteps(person)}
+                  onChange={(e) => updateSteps(person, e.target.value)}
+                  placeholder="e.g. 8500"
+                />
+              </div>
+            ))}
           </div>
         </section>
 
@@ -707,7 +910,7 @@ export default function App() {
               <span className={getBadgeClass()}>{monthlyWellbeingPoints} pts</span>
             </div>
 
-            {MONTHLY_WELLBEING_TASKS.map((task) => {
+            {monthlyWellbeing.map((task) => {
               const checked = !!monthlyCompleted[task.id];
               return (
                 <button
@@ -727,6 +930,69 @@ export default function App() {
                 </button>
               );
             })}
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header simple-header">
+            <h2>Add custom wellbeing item</h2>
+          </div>
+          <div className="panel-body stacked-gap">
+            <div className="field-group">
+              <label>Activity name</label>
+              <input
+                value={newWellbeingTask.title}
+                onChange={(e) => setNewWellbeingTask((prev) => ({ ...prev, title: e.target.value }))}
+                placeholder="e.g. Massage day"
+              />
+            </div>
+            <div className="field-group">
+              <label>Description</label>
+              <input
+                value={newWellbeingTask.description}
+                onChange={(e) => setNewWellbeingTask((prev) => ({ ...prev, description: e.target.value }))}
+                placeholder="e.g. Relaxing recovery time"
+              />
+            </div>
+            <div className="field-group">
+              <label>Points</label>
+              <select value={newWellbeingTask.points} onChange={(e) => setNewWellbeingTask((prev) => ({ ...prev, points: e.target.value }))}>
+                {[1, 2, 3, 5].map((option) => (
+                  <option key={option} value={option}>{option} pts</option>
+                ))}
+              </select>
+            </div>
+            <button className="primary-btn full-width" onClick={addWellbeingTask} type="button">
+              Add wellbeing item
+            </button>
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header simple-header">
+            <h2>Wellbeing history</h2>
+          </div>
+          <div className="panel-body stacked-gap">
+            {monthlyWellbeing.length === 0 ? (
+              <div className="muted-box">No wellbeing items yet.</div>
+            ) : (
+              monthlyWellbeing.map((task) => (
+                <div key={task.id} className="box-card">
+                  <div className="row-between align-start gap-12">
+                    <div>
+                      <div className="task-title">{task.title}</div>
+                      <div className="task-description">{task.description}</div>
+                      <div className="badge-row">
+                        <span className={getBadgeClass()}>{task.points} pts</span>
+                      </div>
+                    </div>
+                    <button className="secondary-btn" onClick={() => removeWellbeingTask(task.id)} type="button">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
 
