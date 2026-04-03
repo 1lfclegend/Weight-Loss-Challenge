@@ -709,25 +709,6 @@ export default function App() {
 
         <section className="panel">
           <div className="panel-header simple-header">
-            <h2>Daily steps</h2>
-          </div>
-          <div className="panel-body stacked-gap">
-            {["Michael", "Sarah"].map((person) => (
-              <div key={person} className="field-group">
-                <label>{person}'s steps today</label>
-                <input
-                  type="number"
-                  value={getSteps(person)}
-                  onChange={(e) => updateSteps(person, e.target.value)}
-                  placeholder="e.g. 8500"
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="panel">
-          <div className="panel-header simple-header">
             <h2>Friday weigh-in</h2>
           </div>
           <div className="panel-body stacked-gap">
@@ -791,6 +772,140 @@ export default function App() {
               <div className="score-name">Sarah</div>
               <div className="score-value">{sarahWeekly}</div>
             </div>
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header simple-header">
+            <h2>Today's activities</h2>
+          </div>
+          <div className="panel-body stacked-gap">
+            {people.map(({ name, tasks }) => {
+              const totalPossible = tasks.reduce((sum, task) => sum + task.points, 0) || 1;
+              const progress = Math.round((dailyScore(name) / totalPossible) * 100);
+              return (
+                <section className="person-panel" key={name}>
+                  <div className={`person-header ${personColors[name]}`}>
+                    <div className="row-between gap-12">
+                      <div>
+                        <h2>{name}</h2>
+                        <p>Daily score: {dailyScore(name)} | Weekly: {weeklyScore(name) + getWeightPoints(name)}</p>
+                      </div>
+                      <div className="trophy-icon">🏆</div>
+                    </div>
+                    <div className="progress-block">
+                      <ProgressBar value={progress} />
+                      <p>{dailyScore(name)} of {totalPossible} possible points today</p>
+                    </div>
+                  </div>
+
+                  <div className="person-body stacked-gap">
+                    {tasks.map((task) => {
+                      const checked = !!completed?.[name]?.[`${selectedDay}-${task.id}`];
+                      return (
+                        <button
+                          key={`${name}-${task.id}`}
+                          onClick={() => toggleTask(name, task)}
+                          className={checked ? "task-btn task-btn-checked" : "task-btn"}
+                          type="button"
+                        >
+                          <div className="task-checkbox">{checked ? "✓" : "○"}</div>
+                          <div className="task-main">
+                            <div className="row-between gap-12">
+                              <div className="task-title">{task.title}</div>
+                              <span className={getBadgeClass()}>{task.points} pts</span>
+                            </div>
+                            <div className="badge-row">
+                              <span className={getBadgeClass("outline")}>{task.category}</span>
+                            </div>
+                            <div className="task-description">{task.description}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header simple-header">
+            <h2>Daily steps</h2>
+          </div>
+          <div className="panel-body stacked-gap">
+            {["Michael", "Sarah"].map((person) => (
+              <div key={person} className="field-group">
+                <label>{person}'s steps today</label>
+                <input
+                  type="number"
+                  value={getSteps(person)}
+                  onChange={(e) => updateSteps(person, e.target.value)}
+                  placeholder="e.g. 8500"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header simple-header">
+            <h2>Monthly wellbeing</h2>
+          </div>
+          <div className="panel-body stacked-gap">
+            <div className="row-between muted-box">
+              <div>
+                <strong>Monthly wellbeing score</strong>
+                <div className="task-description">Tracked separately from the weekly competition so wellbeing supports the challenge instead of distorting it.</div>
+              </div>
+              <span className={getBadgeClass()}>{monthlyWellbeingPoints} pts</span>
+            </div>
+
+            {monthlyWellbeing.map((task) => {
+              const checked = !!monthlyCompleted[task.id];
+              return (
+                <button
+                  key={task.id}
+                  onClick={() => toggleMonthlyTask(task.id)}
+                  className={checked ? "task-btn task-btn-checked" : "task-btn"}
+                  type="button"
+                >
+                  <div className="task-checkbox">{checked ? "✓" : "○"}</div>
+                  <div className="task-main">
+                    <div className="row-between gap-12">
+                      <div className="task-title">{task.title}</div>
+                      <span className={getBadgeClass()}>{task.points} pts</span>
+                    </div>
+                    <div className="task-description">{task.description}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header simple-header">
+            <h2>Weekly breakdown</h2>
+          </div>
+          <div className="panel-body stacked-gap">
+            {["Michael", "Sarah"].map((person) => (
+              <div key={person} className="box-card">
+                <div className="row-between">
+                  <h3>{person}</h3>
+                  <span className={getBadgeClass()}>{weeklyScore(person) + getWeightPoints(person)} pts</span>
+                </div>
+                <div className="week-grid">
+                  {Object.entries(weekScores[person]).map(([day, score]) => (
+                    <div key={day} className="score-tile small-tile">
+                      <div className="score-name">{day}</div>
+                      <div className="score-value small-value">{score}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -899,42 +1014,6 @@ export default function App() {
 
         <section className="panel">
           <div className="panel-header simple-header">
-            <h2>Monthly wellbeing</h2>
-          </div>
-          <div className="panel-body stacked-gap">
-            <div className="row-between muted-box">
-              <div>
-                <strong>Monthly wellbeing score</strong>
-                <div className="task-description">Tracked separately from the weekly competition so wellbeing supports the challenge instead of distorting it.</div>
-              </div>
-              <span className={getBadgeClass()}>{monthlyWellbeingPoints} pts</span>
-            </div>
-
-            {monthlyWellbeing.map((task) => {
-              const checked = !!monthlyCompleted[task.id];
-              return (
-                <button
-                  key={task.id}
-                  onClick={() => toggleMonthlyTask(task.id)}
-                  className={checked ? "task-btn task-btn-checked" : "task-btn"}
-                  type="button"
-                >
-                  <div className="task-checkbox">{checked ? "✓" : "○"}</div>
-                  <div className="task-main">
-                    <div className="row-between gap-12">
-                      <div className="task-title">{task.title}</div>
-                      <span className={getBadgeClass()}>{task.points} pts</span>
-                    </div>
-                    <div className="task-description">{task.description}</div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="panel">
-          <div className="panel-header simple-header">
             <h2>Add custom wellbeing item</h2>
           </div>
           <div className="panel-body stacked-gap">
@@ -992,90 +1071,6 @@ export default function App() {
                   </div>
                 </div>
               ))
-            )}
-          </div>
-        </section>
-
-        <section className="panel">
-          <div className="tab-row">
-            <button className={activeTab === "today" ? "tab-btn active" : "tab-btn"} onClick={() => setActiveTab("today")} type="button">
-              Today
-            </button>
-            <button className={activeTab === "week" ? "tab-btn active" : "tab-btn"} onClick={() => setActiveTab("week")} type="button">
-              Weekly Totals
-            </button>
-          </div>
-
-          <div className="panel-body">
-            {activeTab === "today" ? (
-              <div className="stacked-gap">
-                {people.map(({ name, tasks }) => {
-                  const totalPossible = tasks.reduce((sum, task) => sum + task.points, 0) || 1;
-                  const progress = Math.round((dailyScore(name) / totalPossible) * 100);
-                  return (
-                    <section className="person-panel" key={name}>
-                      <div className={`person-header ${personColors[name]}`}>
-                        <div className="row-between gap-12">
-                          <div>
-                            <h2>{name}</h2>
-                            <p>Daily score: {dailyScore(name)} | Weekly: {weeklyScore(name) + getWeightPoints(name)}</p>
-                          </div>
-                          <div className="trophy-icon">🏆</div>
-                        </div>
-                        <div className="progress-block">
-                          <ProgressBar value={progress} />
-                          <p>{dailyScore(name)} of {totalPossible} possible points today</p>
-                        </div>
-                      </div>
-
-                      <div className="person-body stacked-gap">
-                        {tasks.map((task) => {
-                          const checked = !!completed?.[name]?.[`${selectedDay}-${task.id}`];
-                          return (
-                            <button
-                              key={`${name}-${task.id}`}
-                              onClick={() => toggleTask(name, task)}
-                              className={checked ? "task-btn task-btn-checked" : "task-btn"}
-                              type="button"
-                            >
-                              <div className="task-checkbox">{checked ? "✓" : "○"}</div>
-                              <div className="task-main">
-                                <div className="row-between gap-12">
-                                  <div className="task-title">{task.title}</div>
-                                  <span className={getBadgeClass()}>{task.points} pts</span>
-                                </div>
-                                <div className="badge-row">
-                                  <span className={getBadgeClass("outline")}>{task.category}</span>
-                                </div>
-                                <div className="task-description">{task.description}</div>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </section>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="stacked-gap">
-                {["Michael", "Sarah"].map((person) => (
-                  <div key={person} className="box-card">
-                    <div className="row-between">
-                      <h3>{person}</h3>
-                      <span className={getBadgeClass()}>{weeklyScore(person) + getWeightPoints(person)} pts</span>
-                    </div>
-                    <div className="week-grid">
-                      {Object.entries(weekScores[person]).map(([day, score]) => (
-                        <div key={day} className="score-tile small-tile">
-                          <div className="score-name">{day}</div>
-                          <div className="score-value small-value">{score}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
             )}
           </div>
         </section>
