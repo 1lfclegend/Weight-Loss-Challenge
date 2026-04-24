@@ -1,14 +1,12 @@
 {
-  "name": "beatmatcher-dj-app",
+  "name": "weight-loss-challenge",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "check": "bash scripts/check.sh",
-    "test": "node --test tests/*.test.mjs"
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.3.1",
