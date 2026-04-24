@@ -315,41 +315,41 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("today");
   
   const [daySettings, setDaySettings] = useState(() => {
-    const saved = localStorage.getItem("beatmatcher-day-settings-v2");
+    const saved = localStorage.getItem("weight-loss-day-settings-v2");
     return saved ? JSON.parse(saved) : defaultDaySettings;
   });
 
   const [savedDays, setSavedDays] = useState(() => {
-    const saved = localStorage.getItem("beatmatcher-saved-days-v1");
+    const saved = localStorage.getItem("weight-loss-saved-days-v1");
     return saved ? JSON.parse(saved) : {};
   });
 
   const [weekScores, setWeekScores] = useState(() => {
-    const saved = localStorage.getItem("beatmatcher-week-scores-v1");
+    const saved = localStorage.getItem("weight-loss-week-scores-v1");
     return saved ? JSON.parse(saved) : defaultWeek;
   });
   const [completed, setCompleted] = useState(() => {
-    const saved = localStorage.getItem("beatmatcher-completed-v1");
+    const saved = localStorage.getItem("weight-loss-completed-v1");
     return saved ? JSON.parse(saved) : { Michael: {}, Sarah: {} };
   });
   const [weights, setWeights] = useState(() => {
-    const saved = localStorage.getItem("beatmatcher-weights-v1");
+    const saved = localStorage.getItem("weight-loss-weights-v1");
     return saved ? JSON.parse(saved) : defaultWeights;
   });
   const [customTasks, setCustomTasks] = useState(() => {
-    const saved = localStorage.getItem("beatmatcher-custom-tasks-v1");
+    const saved = localStorage.getItem("weight-loss-custom-tasks-v1");
     return saved ? JSON.parse(saved) : [];
   });
   const [dailySteps, setDailySteps] = useState(() => {
-    const saved = localStorage.getItem("beatmatcher-daily-steps-v1");
+    const saved = localStorage.getItem("weight-loss-daily-steps-v1");
     return saved ? JSON.parse(saved) : { Michael: {}, Sarah: {} };
   });
   const [monthlyWellbeing, setMonthlyWellbeing] = useState(() => {
-    const saved = localStorage.getItem("beatmatcher-monthly-wellbeing-tasks-v1");
+    const saved = localStorage.getItem("weight-loss-monthly-wellbeing-tasks-v1");
     return saved ? JSON.parse(saved) : DEFAULT_MONTHLY_WELLBEING;
   });
   const [monthlyCompleted, setMonthlyCompleted] = useState(() => {
-    const saved = localStorage.getItem("beatmatcher-monthly-completed-v1");
+    const saved = localStorage.getItem("weight-loss-monthly-completed-v1");
     return saved ? JSON.parse(saved) : {};
   });
 
@@ -370,39 +370,39 @@ export default function App() {
   });
 
   useEffect(() => {
-    localStorage.setItem("beatmatcher-day-settings-v2", JSON.stringify(daySettings));
+    localStorage.setItem("weight-loss-day-settings-v2", JSON.stringify(daySettings));
   }, [daySettings]);
 
   useEffect(() => {
-    localStorage.setItem("beatmatcher-saved-days-v1", JSON.stringify(savedDays));
+    localStorage.setItem("weight-loss-saved-days-v1", JSON.stringify(savedDays));
   }, [savedDays]);
 
   useEffect(() => {
-    localStorage.setItem("beatmatcher-week-scores-v1", JSON.stringify(weekScores));
+    localStorage.setItem("weight-loss-week-scores-v1", JSON.stringify(weekScores));
   }, [weekScores]);
 
   useEffect(() => {
-    localStorage.setItem("beatmatcher-completed-v1", JSON.stringify(completed));
+    localStorage.setItem("weight-loss-completed-v1", JSON.stringify(completed));
   }, [completed]);
 
   useEffect(() => {
-    localStorage.setItem("beatmatcher-weights-v1", JSON.stringify(weights));
+    localStorage.setItem("weight-loss-weights-v1", JSON.stringify(weights));
   }, [weights]);
 
   useEffect(() => {
-    localStorage.setItem("beatmatcher-custom-tasks-v1", JSON.stringify(customTasks));
+    localStorage.setItem("weight-loss-custom-tasks-v1", JSON.stringify(customTasks));
   }, [customTasks]);
 
   useEffect(() => {
-    localStorage.setItem("beatmatcher-daily-steps-v1", JSON.stringify(dailySteps));
+    localStorage.setItem("weight-loss-daily-steps-v1", JSON.stringify(dailySteps));
   }, [dailySteps]);
 
   useEffect(() => {
-    localStorage.setItem("beatmatcher-monthly-wellbeing-tasks-v1", JSON.stringify(monthlyWellbeing));
+    localStorage.setItem("weight-loss-monthly-wellbeing-tasks-v1", JSON.stringify(monthlyWellbeing));
   }, [monthlyWellbeing]);
 
   useEffect(() => {
-    localStorage.setItem("beatmatcher-monthly-completed-v1", JSON.stringify(monthlyCompleted));
+    localStorage.setItem("weight-loss-monthly-completed-v1", JSON.stringify(monthlyCompleted));
   }, [monthlyCompleted]);
 
   const currentDayType = daySettings[selectedDay]?.dayType || "both_wfh";
@@ -638,8 +638,8 @@ export default function App() {
         <section className="panel hero-panel">
           <div className="hero-header">
             <div>
-              <h1>Beatmatcher DJ App</h1>
-              <p>Session planning tracker</p>
+              <h1>Weight Loss Challenge</h1>
+              <p>Michael &amp; Sarah tracker</p>
             </div>
           </div>
 
@@ -857,7 +857,7 @@ export default function App() {
             <div className="row-between muted-box">
               <div>
                 <strong>Monthly wellbeing score</strong>
-                <div className="task-description">Tracked separately from the weekly competition so wellbeing supports the session without distorting core workflow data.</div>
+                <div className="task-description">Tracked separately from the weekly competition so wellbeing supports the challenge instead of distorting it.</div>
               </div>
               <span className={getBadgeClass()}>{monthlyWellbeingPoints} pts</span>
             </div>
